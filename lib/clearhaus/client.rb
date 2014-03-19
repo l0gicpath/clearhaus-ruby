@@ -21,40 +21,42 @@ module Clearhaus
     end
 
     # Authorizes an amount against the given card
-    def authorize(options = {})
+    def authorize(data)
       payload = {
-        "amount" => options.delete(:amount)
+        "amount" => data.delete(:amount)
       }
 
-      if options[:card_token]
-        payload.merge!("card_token" => options.delete(:card_token))
+      if data[:card_token]
+        payload.merge!("card_token" => data.delete(:card_token))
       else
         payload.merge!({
-            "card[number]" => options[:card][:number],
-            "card[expire_month]" => options[:card][:expire_month],
-            "card[expire_year]" => options[:card][:expire_year],
-            "card[csc]" => options[:card][:csc]
+            "card[number]" => data[:card][:number],
+            "card[expire_month]" => data[:card][:expire_month],
+            "card[expire_year]" => data[:card][:expire_year],
+            "card[csc]" => data[:card][:csc]
           })
-        options.delete(:card)
+        data.delete(:card)
       end
 
-      payload.merge!(Hash[options.map { |k, v| [k.downcase.to_s, v] }])
+      payload.merge!(Hash[data.map { |k, v| [k.downcase.to_s, v] }])
       @httpc.post("/authorizations", payload)
     end
 
     # Capture all or part of the transaction's amount
-    def capture(amount, transaction_id)
-      @httpc.post("/authorizations/#{ transaction_id }/captures", { "amount" => amount })
+    def capture(data)
+      payload = { "amount" => data[:amount] } if data[:amount]
+      
+      @httpc.post("/authorizations/#{ data[:transaction_id] }/captures", payload || {})
     end
 
     # Undo an authorization
-    def void(transaction_id)
-      @httpc.post("/authorizations/#{ transaction_id }/void")
+    def void(data)
+      @httpc.post("/authorizations/#{ data[:transaction_id] }/void")
     end
 
     # Refund a transaction
-    def refund(transaction_id)
-      @httpc.post("/authorizations/#{ transaction_id }/refund")
+    def refund(data)
+      @httpc.post("/authorizations/#{ data[:transaction_id] }/refund")
     end
 
   end

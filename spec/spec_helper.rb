@@ -1,7 +1,7 @@
 require "webmock/rspec"
 require "clearhaus"
-require "support/fake_clearhaus"
 require "support/mock"
+require "support/fake_clearhaus"
 
 # WebMock.disable_net_connect!(:allow_localhost => true)
 WebMock.allow_net_connect!
