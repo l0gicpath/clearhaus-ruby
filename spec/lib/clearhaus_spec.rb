@@ -15,6 +15,7 @@ describe Clearhaus do
         :ip => "1.1.1.1",
         :text_on_statement => "authorization-0"
       )
+    
     expect(response['status']['code']).to eq 20000
   end
 
@@ -32,27 +33,30 @@ describe Clearhaus do
         :ip => "1.1.1.1",
         :text_on_statement => "authorization-0"
       )
+
     expect(response['status']['code']).to eq 20000
   end
 
   it "Should allow an authorized transaction to be captured" do
     response = @client.authorize(
-        "amount" => 1,
+        :amount => 1,
         :card => Mock.card,
         :currency => "EUR",
         :ip => "1.1.1.1"
       )
+
     response = @client.capture(:transaction_id => response['id'])
     expect(response['status']['code']).to eq 20000
   end
 
   it "Should allow attempts to capture a specific amount of a previously authorized transaction" do
     response = @client.authorize(
-        "amount" => 10,
+        :amount => 10,
         :card => Mock.card,
         :currency => "EUR",
         :ip => "1.1.1.1"
       )
+
     response = @client.capture(:amount => 5, :transaction_id => response['id'])
     expect(response['status']['code']).to eq 20000
   end
@@ -64,5 +68,21 @@ describe Clearhaus do
 
     }.to raise_error(Clearhaus::Error::ClientError)
 
+  end
+
+  it "Should allow an authorized transaction that hasn't been captured yet to be voided" do
+    response = @client.authorize(
+        :amount => 1,
+        :card => Mock.card,
+        :currency => "EUR",
+        :ip => "1.1.1.1"
+      )
+
+    response = @client.void(:transaction_id => response['id'])
+    expect(response['status']['code']).to eq 20000
+  end
+
+  it "Should fail when trying to void a transaction that has been captured" do
+    pending("the addition of Clearhaus::Client#charge method")
   end
 end

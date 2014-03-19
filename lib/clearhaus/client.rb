@@ -45,18 +45,18 @@ module Clearhaus
     # Capture all or part of the transaction's amount
     def capture(data)
       payload = { "amount" => data[:amount] } if data[:amount]
-      
+
       @httpc.post("/authorizations/#{ data[:transaction_id] }/captures", payload || {})
     end
 
     # Undo an authorization
     def void(data)
-      @httpc.post("/authorizations/#{ data[:transaction_id] }/void")
+      @httpc.post("/authorizations/#{ data[:transaction_id] }/voids")
     end
 
     # Refund a transaction
     def refund(data)
-      @httpc.post("/authorizations/#{ data[:transaction_id] }/refund")
+      @httpc.post("/authorizations/#{ data[:transaction_id] }/refunds")
     end
 
   end
