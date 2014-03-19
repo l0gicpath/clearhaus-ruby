@@ -3,7 +3,7 @@ module Clearhaus
   module HttpClient
 
     class Client
-      attr_accessor :api_key, :options
+      attr_accessor :options
 
       def initialize(api_key, options)
         @options = {

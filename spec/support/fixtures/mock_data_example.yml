@@ -1,0 +1,7 @@
+card:
+  number: 4111111111111111
+  expire_month: 12
+  expire_year: 2017
+  csc: 123
+
+api_key: "your-api-key"
