@@ -16,7 +16,7 @@ module Clearhaus
           env = basic_auth env
           @app.call(env)
         else
-          raise Clearhaus::Error::MissingParamError.new
+          raise ArgumentError, "Missing an API key"
         end
       end
 

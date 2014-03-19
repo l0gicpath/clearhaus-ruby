@@ -8,7 +8,7 @@ module Clearhaus
       def initialize(api_key, options)
         @options = {
           :endpoint => "https://gateway.clearhaus.com",
-          :user_agent => "clearhaus/ruby-#{Clearhaus::VERSION} http://clearhaus.com"
+          :user_agent => "clearhaus/ruby-#{ Clearhaus::VERSION } http://clearhaus.com"
         }
 
         @options.update options
@@ -24,7 +24,7 @@ module Clearhaus
 
         @client = Faraday.new @options[:endpoint] do |conn|
           conn.use Clearhaus::HttpClient::AuthHandler, api_key
-          # conn.use Clearhaus::HttpClient::ErrorHandler
+          conn.use Clearhaus::HttpClient::ErrorHandler
 
           conn.adapter Faraday.default_adapter
         end

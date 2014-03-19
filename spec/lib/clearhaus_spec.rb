@@ -58,7 +58,11 @@ describe Clearhaus do
   end
 
   it "Should reject attempts to capture a transaction that doesn't exist (hasn't been authorized yet)" do
-    response = @client.capture(:transaction_id => "some-unknown-random-transaction-id")
-    expect(response['status']['code']).to eq 40000
+    expect{
+      
+      @client.capture( :transaction_id => "unknown-transaction-id" )
+
+    }.to raise_error(Clearhaus::Error::ClientError)
+
   end
 end
