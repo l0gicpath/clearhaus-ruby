@@ -20,6 +20,11 @@ module Clearhaus
       @httpc.post("/cards", payload)
     end
 
+    def charge(data)
+      response = authorize(data)
+      capture(:transaction_id => response['id'])
+    end
+
     # Authorizes an amount against the given card
     def authorize(data)
       payload = {

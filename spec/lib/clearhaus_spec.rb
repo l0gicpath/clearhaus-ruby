@@ -15,7 +15,7 @@ describe Clearhaus do
         :ip => "1.1.1.1",
         :text_on_statement => "authorization-0"
       )
-    
+
     expect(response['status']['code']).to eq 20000
   end
 
@@ -83,6 +83,15 @@ describe Clearhaus do
   end
 
   it "Should fail when trying to void a transaction that has been captured" do
-    pending("the addition of Clearhaus::Client#charge method")
+    response = @client.charge(
+        :amount => 1,
+        :card => Mock.card,
+        :currency => "EUR",
+        :ip => "1.1.1.1" 
+      )
+
+    expect {
+      @client.capture(:transaction_id => response['id'])
+    }.to raise_error(Clearhaus::Error::ClientError)
   end
 end
