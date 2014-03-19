@@ -1,4 +1,4 @@
-Copyright (c) 2014 Hady A.
+Copyright (c) 2014 Clearhaus.
 
 MIT License
 
