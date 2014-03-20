@@ -94,4 +94,16 @@ describe Clearhaus do
       @client.capture(:transaction_id => response['id'])
     }.to raise_error(Clearhaus::Error::ClientError)
   end
+
+  it "Should allow a transaction to be refunded" do
+    response = @client.charge(
+        :amount => 1,
+        :card => Mock.card,
+        :currency => "EUR",
+        :ip => "1.1.1.1" 
+      )
+    response = @client.refund(:transaction_id => response['id'])
+    expect(response['status']['code']).to eq 20000
+  end
+
 end

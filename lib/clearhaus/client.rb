@@ -1,11 +1,7 @@
-## Maps the api
 module Clearhaus
 
   class Client
 
-    # Initializes a new client with the given api_key and options.
-    # The http client will be responsible for figuring out whether we were given an api key or not then
-    # throw a missing api key error.
     def initialize(api_key, options = {})
       @httpc = Clearhaus::HttpClient::Client.new api_key, options
     end
@@ -25,7 +21,6 @@ module Clearhaus
       capture(:transaction_id => response['id'])
     end
 
-    # Authorizes an amount against the given card
     def authorize(data)
       payload = {
         "amount" => data.delete(:amount)
@@ -47,21 +42,20 @@ module Clearhaus
       @httpc.post("/authorizations", payload)
     end
 
-    # Capture all or part of the transaction's amount
     def capture(data)
       payload = { "amount" => data[:amount] } if data[:amount]
 
       @httpc.post("/authorizations/#{ data[:transaction_id] }/captures", payload || {})
     end
 
-    # Undo an authorization
     def void(data)
       @httpc.post("/authorizations/#{ data[:transaction_id] }/voids")
     end
 
-    # Refund a transaction
     def refund(data)
-      @httpc.post("/authorizations/#{ data[:transaction_id] }/refunds")
+      payload = { "amount" => data[:amount] } if data[:amount]
+
+      @httpc.post("/captures/#{ data[:transaction_id] }/refunds", payload || {})
     end
 
   end
