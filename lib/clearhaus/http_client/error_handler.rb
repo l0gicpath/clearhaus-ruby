@@ -1,4 +1,4 @@
-module Clearhaus
+module Clearhaus # :nodoc: all
 
   module HttpClient
 
@@ -8,6 +8,8 @@ module Clearhaus
         super(app)
       end
 
+      # Checks on the API response to see if Clearhaus has reported any errors
+      # Raises a ClientError with the code and message received from Clearhaus
       def call(env)
         @app.call(env).on_complete do
           status = JSON.parse(env[:body])['status']

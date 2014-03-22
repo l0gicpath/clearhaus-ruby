@@ -1,6 +1,6 @@
 # Courtesy of http://speakmy.name/2011/05/29/simple-configuration-for-ruby-apps/
 # With minor refactoring and some additions to fit our case
-module Mock
+module Mock # :nodoc:
   # again - it's a singleton, thus implemented as a self-extended module
   extend self
 

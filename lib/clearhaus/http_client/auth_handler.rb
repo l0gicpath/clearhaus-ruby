@@ -1,6 +1,6 @@
 require "base64"
 
-module Clearhaus
+module Clearhaus # :nodoc: all
 
   module HttpClient
 
@@ -11,6 +11,7 @@ module Clearhaus
         super(app)
       end
 
+      # Checks whether we were given an API key or not, raising an ArgumentError for a missing API key
       def call(env)
         if !@api_key.empty?
           env = basic_auth env
@@ -20,6 +21,8 @@ module Clearhaus
         end
       end
 
+      # Clearhaus authenticates clients using basic authentication
+      # Expects the API key to be used in place of a username and a blank password
       def basic_auth(env)
         auth = Base64.encode64 "#{@api_key}:"
         env[:request_headers]["Authorization"] = "Basic #{auth}"

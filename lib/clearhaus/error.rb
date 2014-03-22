@@ -1,11 +1,15 @@
-module Clearhaus
+module Clearhaus #:nodoc:
 
   module Error
 
-    class Standard < ::StandardError; end
+    ##
+    # A +ClientError+ is a +StandardError+ that's thrown when Clearhaus API reports a problem
+    class ClientError < ::StandardError
 
-    class ClientError < Standard
+      ##
+      # Error code returned by Clearhaus API
       attr_reader :code
+
       ERRORS = {
         40000 => "General input error.",
         40101 => "Problem with card number.",
@@ -23,6 +27,7 @@ module Clearhaus
         @code = error_code
         super "#{ ERRORS[error_code] } #{ message.capitalize }"
       end
+
     end
 
   end

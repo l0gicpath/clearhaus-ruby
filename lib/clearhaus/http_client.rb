@@ -1,6 +1,6 @@
-module Clearhaus
+module Clearhaus # :nodoc:
 
-  module HttpClient
+  module HttpClient # :nodoc: all
 
     class Client
       attr_accessor :options
@@ -38,6 +38,7 @@ module Clearhaus
         request path, body, "post", options
       end
 
+      # Handles both get and post requests, if it's a post request we change the request body accordingly
       def request(path, body, method, options)
         options = @options.merge options
         options[:headers] = options[:headers] || {}
@@ -54,6 +55,7 @@ module Clearhaus
         get_body response
       end
 
+      # Makes the actual request given a method, path and options
       def create_request(method, path, options)
         instance_eval <<-RUBY, __FILE__, __LINE__ + 1
           @client.#{method} path do |req|
@@ -64,12 +66,12 @@ module Clearhaus
         RUBY
       end
 
-      # Get response body in correct format
+      # Parse JSON response
       def get_body(response)
         JSON.parse response.body
       end
 
-      # Set request body in correct format
+      # Set request body as POST form-data
       def set_body(options)
         options[:body] = Faraday::Utils::ParamsHash[options[:body]].to_query
         options[:headers]["content-type"] = "application/x-www-form-urlencoded"

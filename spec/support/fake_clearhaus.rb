@@ -1,6 +1,6 @@
 require 'sinatra/base'
 
-class FakeClearhaus < Sinatra::Base
+class FakeClearhaus < Sinatra::Base # :nodoc:
 
   # Authorize a new transaction
   post '/authorizations' do

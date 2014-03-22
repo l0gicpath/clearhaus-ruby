@@ -9,5 +9,5 @@ require "clearhaus/http_client/error_handler"
 require "clearhaus/http_client"
 require "clearhaus/client"
 
-module Clearhaus
+module Clearhaus # :nodoc: all
 end
