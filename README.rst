@@ -22,18 +22,16 @@ the JSON output from the REST-API.
 
 In case of any problems reported by Clearhaus, a ClientError exception is raised.
 
-To initialize a new instance of the client, provide it with an API key
+To initialize a new instance of the client, provide it with an API key::
 
-::  
   @client = Clearhaus::Client.new("API-KEY")
 
 
 Tokenize Credit Cards
---------------------
+---------------------
 
-To tokenize a card, feed the credit card details to the **#tokenize** method
+To tokenize a card, feed the credit card details to the **#tokenize** method::
 
-::
   response = @client.tokenize(
       :number => 4111111111111111,
       :expire_month => 12,
@@ -48,9 +46,8 @@ Charging Credit Cards
 There are two ways to charge a credit card, it can be done in one step using **#charge** or over two steps
 using **#authorize** followed by a call to **#capture**
 
-- Charge a credit card in one step
+Charge a credit card in one step::
 
-::
   response = @client.charge(
     :amount => 1000,
     :card_token => token,
@@ -59,14 +56,13 @@ using **#authorize** followed by a call to **#capture**
   )
   transaction_id = response['id']
 
-- Charge a credit card in two steps
+Charge a credit card in two steps::
 
-::
   response = @client.authorize(
     :amount => 1000,
     :card_token => token,
     :currency => "EUR",
     :ip => "1.1.1.1" 
   )
-
   response = @client.capture(:transaction_id => response['id'])
+
