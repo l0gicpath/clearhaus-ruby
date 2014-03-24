@@ -41,15 +41,11 @@ module Clearhaus # :nodoc:
       # Handles both get and post requests, if it's a post request we change the request body accordingly
       def request(path, body, method, options)
         options = @options.merge options
-        options[:headers] = options[:headers] || {}
+        options[:headers] ||= {}
         options[:headers] = @headers.merge Hash[options[:headers].map{ |k, v| [k.downcase, v] }]
-        
         options[:body] = body
 
-        if method != "get"
-          options[:body] = options[:body] || {}
-          options = set_body options
-        end
+        options = set_body options unless method == "get"
 
         response = create_request method, path, options
         get_body response
@@ -73,6 +69,7 @@ module Clearhaus # :nodoc:
 
       # Set request body as POST form-data
       def set_body(options)
+        options[:body] ||= {}
         options[:body] = Faraday::Utils::ParamsHash[options[:body]].to_query
         options[:headers]["content-type"] = "application/x-www-form-urlencoded"
         return options

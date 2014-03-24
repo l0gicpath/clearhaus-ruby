@@ -20,7 +20,7 @@ The Clearhaus ruby bindings directly maps to Clearhaus REST-API. This means the 
 methods expect the same params that the REST-API expects and it will directly return
 the JSON output from the REST-API.
 
-In case of any problems reported by Clearhaus, a ClientError exception is raised.
+In case of any problems reported by Clearhaus, a Clearhaus::Error::ClientError exception is raised.
 
 To initialize a new instance of the client, provide it with an API key::
 
