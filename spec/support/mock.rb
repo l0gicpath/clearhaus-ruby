@@ -8,21 +8,11 @@ module Mock # :nodoc:
   attr_reader :_mockdata
 
   def load!(filename, options = {})
-    newsets = symbolize( YAML::load_file(filename) )
+    newsets = Clearhaus.symbolize( YAML::load_file(filename) )
     newsets = newsets[options[:env].to_sym] if \
                                                options[:env] && \
                                                newsets[options[:env].to_sym]
     deep_merge!(@_mockdata, newsets)
-  end
-
-  # Courtesy of http://stackoverflow.com/a/8380073 with minor refactoring to fit our case
-  def symbolize hash
-    Hash === hash ? 
-      Hash[
-        hash.map do |k, v| 
-          [k.respond_to?(:to_sym) ? k.to_sym : k, symbolize(v)] 
-        end 
-      ] : hash
   end
 
   # Deep merging of hashes

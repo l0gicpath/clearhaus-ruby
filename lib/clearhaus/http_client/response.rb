@@ -11,7 +11,7 @@ module Clearhaus #:nodoc:
 
       
       def initialize(response)
-        @body = symbolize( JSON.parse(response.body) ) #TODO: should probably handle exceptions here
+        @body = Clearhaus.symbolize( JSON.parse(response.body) ) #TODO: should probably handle exceptions here
         analyize
 
         define_states :approved?, :challenged?, :declined? do |state|
@@ -26,17 +26,6 @@ module Clearhaus #:nodoc:
 
 
       private
-
-      # Courtesy of http://stackoverflow.com/a/8380073 with minor refactoring to fit our case
-      def symbolize hash
-        Hash === hash ? 
-          Hash[
-            hash.map do |k, v| 
-              [k.respond_to?(:to_sym) ? k.to_sym : k, symbolize(v)] 
-            end 
-          ] : hash
-      end
-
       def analyize #:nodoc:
         case @body[:status][:code]
         when 20000
