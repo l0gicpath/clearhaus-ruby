@@ -40,7 +40,7 @@ module Clearhaus # :nodoc:
     # See: Clearhaus::Client#authorize
     def charge(data)
       response = authorize(data)
-      capture(:transaction_id => response['id'])
+      capture(:transaction_id => response[:id])
     end
 
     ##

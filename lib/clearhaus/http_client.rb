@@ -1,6 +1,6 @@
-module Clearhaus # :nodoc:
+module Clearhaus # :nodoc: all
 
-  module HttpClient # :nodoc: all
+  module HttpClient
 
     class Client
       attr_accessor :options
@@ -8,7 +8,8 @@ module Clearhaus # :nodoc:
       def initialize(api_key, options)
         @options = {
           :endpoint => "https://gateway.clearhaus.com",
-          :user_agent => "clearhaus/ruby-#{ Clearhaus::VERSION } http://clearhaus.com"
+          :user_agent => "clearhaus/ruby-#{ Clearhaus::VERSION } http://clearhaus.com",
+          :silent => true
         }
 
         @options.update options
@@ -24,7 +25,7 @@ module Clearhaus # :nodoc:
 
         @client = Faraday.new @options[:endpoint] do |conn|
           conn.use Clearhaus::HttpClient::AuthHandler, api_key
-          conn.use Clearhaus::HttpClient::ErrorHandler
+          conn.use Clearhaus::HttpClient::ErrorHandler unless @options[:silent]
 
           conn.adapter Faraday.default_adapter
         end
@@ -48,7 +49,7 @@ module Clearhaus # :nodoc:
         options = set_body options unless method == "get"
 
         response = create_request method, path, options
-        get_body response
+        Clearhaus::HttpClient::Response.new(response)
       end
 
       # Makes the actual request given a method, path and options
@@ -60,11 +61,6 @@ module Clearhaus # :nodoc:
             req.params.update options[:query] if options[:query]
           end
         RUBY
-      end
-
-      # Parse JSON response
-      def get_body(response)
-        JSON.parse response.body
       end
 
       # Set request body as POST form-data
