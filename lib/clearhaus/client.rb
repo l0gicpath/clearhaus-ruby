@@ -8,9 +8,11 @@ module Clearhaus # :nodoc:
     ##
     # Create a new instance of the client with a clearhaus API key
     # params:
-    # +api_key+:: clearhaus api key 
-    # +options+:: an optional hash for setting the :endpoint of the api or the :user_agent of all client requests
-    def initialize(api_key, options = {})
+    # +api_key+:: clearhaus api key, raises an ArgumentError if no key was provided 
+    # +options+:: an *optional* hash for setting the :endpoint of the api or the :user_agent of all client requests
+    def initialize(api_key = "", options = {})
+      raise ArgumentError, "Missing an API key" if api_key.empty?
+
       @httpc = Clearhaus::HttpClient::Client.new api_key, options
     end
 

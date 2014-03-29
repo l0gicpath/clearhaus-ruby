@@ -11,14 +11,9 @@ module Clearhaus # :nodoc: all
         super(app)
       end
 
-      # Checks whether we were given an API key or not, raising an ArgumentError for a missing API key
       def call(env)
-        if !@api_key.empty?
-          env = basic_auth env
-          @app.call(env)
-        else
-          raise ArgumentError, "Missing an API key"
-        end
+        env = basic_auth env
+        @app.call(env)
       end
 
       # Clearhaus authenticates clients using basic authentication
