@@ -3,7 +3,7 @@ require 'spec_helper'
 
 describe Clearhaus do
 
-  before do
+  before(:all) do
     @client = Clearhaus::Client.new(Mock.api_key)
   end
 

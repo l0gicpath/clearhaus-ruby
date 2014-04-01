@@ -11,7 +11,8 @@ module Clearhaus #:nodoc:
 
       
       def initialize(response)
-        @body = Clearhaus.symbolize( JSON.parse(response.body) ) #TODO: should probably handle exceptions here
+        parsed_body = response.body.is_a?(String) ? JSON.parse(response.body) : response.body
+        @body = Clearhaus.symbolize( parsed_body )
         analyize
 
         define_states :approved?, :challenged?, :declined? do |state|
@@ -26,7 +27,7 @@ module Clearhaus #:nodoc:
 
 
       private
-      def analyize #:nodoc:
+      def analyize
         case @body[:status][:code]
         when 20000
           @status = Status.new(:approved)

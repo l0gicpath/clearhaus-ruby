@@ -1,22 +1,40 @@
 require 'spec_helper'
 
 describe Clearhaus::HttpClient::Response do
-  before do
-#     R = Struct.new(:body)
-#     @data = R.new(%Q[
-#         {
-#     "id": "3b6b0ed6-cbe0-4b60-9e7d-9560cfc98d59",
-#     "status": {
-#         "code": 20000
-#     },
-#     "card_token": "d1de0708-9106-47e7-bece-d017a9f40bd0",
-#     "_links": {
-#         "self":     { "href": "/authorizations/3b6b0ed6-cbe0-4b60-9e7d-9560cfc98d59" },
-#         "captures": { "href": "/authorizations/3b6b0ed6-cbe0-4b60-9e7d-9560cfc98d59/captures" },
-#         "card":     { "href": "/cards/d1de0708-9106-47e7-bece-d017a9f40bd0" },
-#         "voids":    { "href": "/authorizations/3b6b0ed6-cbe0-4b60-9e7d-9560cfc98d59/voids" }
-#     }
-# }
-#       ])
+  before(:all) do
+    # Wrap our mock response in a struct under a body variable because Response#initialize expects a 
+    # response object with a body variable
+    R = Struct.new(:body)
+    @valid_response = R.new(Mock.valid_response)
+    puts "#{@valid_response.inspect}"
   end
+
+  it "should generate a helper method approved? that returns true for a 20000 request" do
+    response = Clearhaus::HttpClient::Response.new(@valid_response)
+    expect(response).to respond_to(:approved?)
+    expect(response.approved?).to be_true
+  end
+
+  it "should generate a helper method declined? that returns false for a 20000 request" do
+    response = Clearhaus::HttpClient::Response.new(@valid_response)
+    expect(response).to respond_to(:declined?)
+    expect(response.declined?).to be_false
+  end
+
+  it "should generate a helper method challenged? that returns false for a 20000 request" do
+    response = Clearhaus::HttpClient::Response.new(@valid_response)
+    expect(response).to respond_to(:challenged?)
+    expect(response.challenged?).to be_false
+  end
+
+  it "should allow accessing response body as a hash object via [:response_key]" do
+    response = Clearhaus::HttpClient::Response.new(@valid_response)
+    expect(response[:id]).to eq(Mock.valid_response[:id])
+  end
+
+  it "should allow accessing response body using .body" do
+    response = Clearhaus::HttpClient::Response.new(@valid_response)
+    expect(response.body[:id]).to eq(Mock.valid_response[:id])
+  end
+
 end
