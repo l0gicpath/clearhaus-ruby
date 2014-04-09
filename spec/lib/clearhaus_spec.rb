@@ -7,6 +7,12 @@ describe Clearhaus do
     Clearhaus.api_key = Mock.api_key
   end
 
+  before(:each) do
+    # We set silent to false on some tests which has a side effect on the rest of the tests that follow
+    # So before each we make sure it's set to true (default) and some tests will override it anyway
+    Clearhaus.silent = true
+  end
+
   it "Should allow the authorization of a certain amount" do
     transaction = Clearhaus::Client.authorize(
         :amount             => 1,
@@ -72,52 +78,54 @@ describe Clearhaus do
     expect(transaction.capture.approved?).to be_true
   end
 
-  it "Should allow attempts to capture a specific amount of a previously authorized transaction" do
-    response = @client.authorize(
-        :amount => 10,
-        :card => Mock.card,
-        :currency => "EUR",
-        :ip => "1.1.1.1"
+  it "Should allow capturing a specific amount of an authorized transaction" do
+    transaction1 = Clearhaus::Client.authorize(
+        :amount             => 100,
+        :card               => Mock.card,
+        :currency           => "EUR",
+        :ip                 => "1.1.1.1",
+      )
+    expect(transaction1.capture(50).approved?).to be_true
+
+    transaction2 = Clearhaus::Client.authorize(
+        :amount             => 100,
+        :card               => Mock.card,
+        :currency           => "EUR",
+        :ip                 => "1.1.1.1",
       )
 
-    response = @client.capture(:amount => 5, :transaction_id => response.body[:id])
-    expect(response.approved?).to be_true
-    expect(response.declined?).to be_false
+    expect(Clearhaus::Client.capture(transaction2.id, amount: 50).approved?).to be_true
   end
 
   it "Should raise ClientError on attempts to capture a transaction that doesn't exist (hasn't been authorized yet)" do
-    @loud_client = Clearhaus::Client.new(Mock.api_key, { :silent => false })
+    Clearhaus.silent = false
     expect{
       
-      @loud_client.capture( :transaction_id => "unknown-transaction-id" )
+      Clearhaus::Client.capture("unknown-transaction-id")
 
     }.to raise_error(Clearhaus::Error::ClientError)
   end
 
   it "Should silently reject attempts to capture a transaction that doesn't exist" do
-    response = @client.capture( :transaction_id => "unknown-transaction-id" )
-
-    expect(response.approved?).to be_false
-    expect(response.declined?).to be_true
+    transaction = Clearhaus::Client.capture("unknown-transaction-id")
+    expect(transaction.approved?).to be_false
   end
 
   it "Should allow an authorized transaction that hasn't been captured yet to be voided" do
-    response = @client.authorize(
-        :amount => 1,
-        :card => Mock.card,
-        :currency => "EUR",
-        :ip => "1.1.1.1"
+    transaction = Clearhaus::Client.authorize(
+        :amount             => 100,
+        :card               => Mock.card,
+        :currency           => "EUR",
+        :ip                 => "1.1.1.1",
       )
-
-    response = @client.void(:transaction_id => response.body[:id])
-    expect(response.approved?).to be_true
-    expect(response.declined?).to be_false
+    transaction = Clearhaus::Client.void(transaction.id)
+    expect(transaction.approved?).to be_true
   end
 
   it "Should raise ClientError when trying to void a transaction that has been captured" do
-    @loud_client = Clearhaus::Client.new(Mock.api_key, { :silent => false })
+    Clearhaus.silent = false
 
-    response = @loud_client.charge(
+    transaction = Clearhaus::Client.charge(
         :amount => 1,
         :card => Mock.card,
         :currency => "EUR",
@@ -125,33 +133,18 @@ describe Clearhaus do
       )
 
     expect {
-      @loud_client.capture(:transaction_id => response[:id])
+      transaction.capture
     }.to raise_error(Clearhaus::Error::ClientError)
   end
 
-  it "Should reject silently when trying to void a transaction that has already been captured" do
-    response = @client.charge(
-        :amount => 1,
-        :card => Mock.card,
-        :currency => "EUR",
-        :ip => "1.1.1.1"
-      )
-    
-    response = @client.capture(:transaction_id => response[:id])
-    expect(response.approved?).to be_false
-    expect(response.declined?).to be_true
-  end
-
   it "Should allow a transaction to be refunded" do
-    response = @client.charge(
+    transaction = Clearhaus::Client.charge(
         :amount => 1,
         :card => Mock.card,
         :currency => "EUR",
         :ip => "1.1.1.1" 
       )
-    response = @client.refund(:transaction_id => response.body[:id])
-    expect(response.approved?).to be_true
-    expect(response.declined?).to be_false
+    expect(transaction.refund.approved?).to be_true
   end
 
 end

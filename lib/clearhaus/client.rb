@@ -76,7 +76,7 @@ module Clearhaus # :nodoc:
       # params:
       # +transaction_id+:: ID of a transaction that has been authorized
       def void(transaction_id)
-        response = post("/authorizations/#{ transaction_id }/voids")
+        response = httpc.post("/authorizations/#{ transaction_id }/voids")
         response.extend(Clearhaus::Api::TransactionOperations)
       end
 
