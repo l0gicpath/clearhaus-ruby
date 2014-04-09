@@ -10,7 +10,7 @@ module Clearhaus # :nodoc:
       ] : hash
   end
 
-  module PayloadExtractor
+  module ExtractPayload
 
     module ClassMethods
       def from_hash(hash: {}, wrapwith: "")

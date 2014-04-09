@@ -5,7 +5,7 @@ module Clearhaus # :nodoc:
   # key and an optional list of params (See: Clearhaus::Client#initialize for more details)
   class Client
     extend SingleForwardable
-    include PayloadExtractor
+    include ExtractPayload
 
     def_delegator :Clearhaus, :httpc
 
