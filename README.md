@@ -109,7 +109,7 @@ transaction.capture
  
 ## Error Reporting
 
-Errors are by default supressed and to check whether an operation was a success or not using approved? declined? challenged? methods.
+Errors are by default supressed and to check whether an operation was a success or not, use approved? declined? challenged? methods.
 
 Response objects also expose response_code and response_message. If explicit error reporting is required and code should break on errors then set Clearhaus.silent to false
 
