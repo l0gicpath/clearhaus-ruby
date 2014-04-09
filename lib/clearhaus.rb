@@ -32,10 +32,8 @@ module Clearhaus # :nodoc: all
     attr_reader :_httpc, :_links
 
     def httpc
-      unless @_httpc
-        @_httpc = Clearhaus::HttpClient::Client.new
-        # Need to discover and cache @_links 
-
+      @_httpc = Clearhaus::HttpClient::Client.new unless @_httpc
+      # Need to discover and cache @_links
       return @_httpc
     end
   end

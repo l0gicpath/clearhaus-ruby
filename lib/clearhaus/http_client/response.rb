@@ -6,7 +6,6 @@ module Clearhaus #:nodoc:
 
     class Response
 
-      attr_reader :params
       attr_reader :status
 
       
