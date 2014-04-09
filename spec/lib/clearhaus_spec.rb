@@ -4,53 +4,72 @@ require 'spec_helper'
 describe Clearhaus do
 
   before(:all) do
-    @client = Clearhaus::Client.new(Mock.api_key)
+    Clearhaus.api_key = Mock.api_key
   end
 
   it "Should allow the authorization of a certain amount" do
-    response = @client.authorize(
-        :amount => 1, 
-        :card => Mock.card,
-        :currency => "EUR",
-        :ip => "1.1.1.1",
-        :text_on_statement => "authorization-0"
+    transaction = Clearhaus::Client.authorize(
+        :amount             => 1,
+        :card               => Mock.card,
+        :currency           => "EUR",
+        :ip                 => "1.1.1.1",
+        :text_on_statement  => "auth-all-params",
+        :recurring          => true
       )
 
-    expect(response.approved?).to be_true
-    expect(response.declined?).to be_false
+    expect(transaction.approved?).to be_true
+    expect(transaction.status).to eq(:approved)
+    expect(transaction.response_code).to eq(20000)
+    expect(transaction.declined?).to be_false
+  end
+
+  it "Should allow authorization if we only include the non-optional params" do
+    transaction = Clearhaus::Client.authorize(
+        :amount             => 1,
+        :card               => Mock.card,
+        :currency           => "EUR",
+        :ip                 => "1.1.1.1",
+      )
+
+    expect(transaction.approved?).to be_true
   end
 
   it "Can tokenize card data returning a card token" do
-    response = @client.tokenize(Mock.card)
-    expect(response.approved?).to be_true
-    expect(response.declined?).to be_false
+    card = Clearhaus::Client.tokenize(Mock.card)
+    expect(card.approved?).to be_true
   end
 
-  it "Should allow the authorization of a certain amount using a card token" do
-    card_token = @client.tokenize(Mock.card)
-    response = @client.authorize(
-        :amount => 1,
-        :card_token => card_token.body[:card_token],
-        :currency => "EUR",
-        :ip => "1.1.1.1",
-        :text_on_statement => "authorization-0"
+  it "Should allow authorization with a given card token" do
+    card = Clearhaus::Client.tokenize(Mock.card)
+    transaction = Clearhaus::Client.authorize(
+        :amount             => 1,
+        :card               => card.token,
+        :currency           => "EUR",
+        :ip                 => "1.1.1.1",
       )
-
-    expect(response.approved?).to be_true
-    expect(response.declined?).to be_false
+    expect(transaction.approved?).to be_true
   end
 
   it "Should allow an authorized transaction to be captured" do
-    response = @client.authorize(
-        :amount => 1,
-        :card => Mock.card,
-        :currency => "EUR",
-        :ip => "1.1.1.1"
+    transaction = Clearhaus::Client.authorize(
+        :amount             => 1,
+        :card               => Mock.card,
+        :currency           => "EUR",
+        :ip                 => "1.1.1.1",
       )
 
-    response = @client.capture(:transaction_id => response[:id])
-    expect(response.approved?).to be_true
-    expect(response.declined?).to be_false
+    transaction = Clearhaus::Client.capture(transaction.id)
+    expect(transaction.approved?).to be_true
+  end
+
+  it "Should allow an authorized transaction to be captured by invoking capture on the returned response object" do
+    transaction = Clearhaus::Client.authorize(
+        :amount             => 1,
+        :card               => Mock.card,
+        :currency           => "EUR",
+        :ip                 => "1.1.1.1",
+      )
+    expect(transaction.capture.approved?).to be_true
   end
 
   it "Should allow attempts to capture a specific amount of a previously authorized transaction" do

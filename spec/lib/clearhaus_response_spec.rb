@@ -7,7 +7,6 @@ describe Clearhaus::HttpClient::Response do
     # response object with a body variable
     R = Struct.new(:body)
     @valid_response = R.new(Mock.valid_response)
-    puts "#{@valid_response.inspect}"
   end
 
   it "should generate a helper method approved? that returns true for a 20000 request" do

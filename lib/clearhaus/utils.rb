@@ -15,7 +15,7 @@ module Clearhaus # :nodoc:
     module ClassMethods
       def from_hash(hash: {}, wrapwith: "")
         hash.map { |k, v| 
-            v.is_a?(Hash) ? from_hash_wrapped(hash: v, wrapwith: k) : 
+            v.is_a?(Hash) ? from_hash(hash: v, wrapwith: k) : 
               wrapwith.empty? ? {"#{k}" => v} : {"#{wrapwith}[#{k}]" => v}
           }.flatten.reduce({}, :merge)
       end
