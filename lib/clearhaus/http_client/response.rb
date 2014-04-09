@@ -5,9 +5,10 @@ module Clearhaus #:nodoc:
     Status = Struct.new(:state, :code, :message)
 
     class Response
-
-      attr_reader :status
-
+      extend Forwardable
+      def_delegator :@status, :state, :status
+      def_delegator :@status, :code, :response_code
+      def_delegator :@status, :message, :response_message
       
       def initialize(response)
         parsed_body = response.body.is_a?(String) ? JSON.parse(response.body) : response.body

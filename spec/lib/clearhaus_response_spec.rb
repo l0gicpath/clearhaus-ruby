@@ -1,5 +1,6 @@
 require 'spec_helper'
 
+# Todo: Should test various response cases, ex: invalid, challenged...etc
 describe Clearhaus::HttpClient::Response do
   before(:all) do
     # Wrap our mock response in a struct under a body variable because Response#initialize expects a 
@@ -32,9 +33,11 @@ describe Clearhaus::HttpClient::Response do
     expect(response[:id]).to eq(Mock.valid_response[:id])
   end
 
-  it "should allow accessing response body using .body" do
+  it "should properly delegate status, response_code and response_message to the internal status object" do
     response = Clearhaus::HttpClient::Response.new(@valid_response)
-    expect(response.body[:id]).to eq(Mock.valid_response[:id])
+    expect(response.status).to eq(:approved)
+    expect(response.response_code).to eq(Mock.valid_response[:status][:code])
+    expect(response.response_message).to eq ""
   end
 
 end
