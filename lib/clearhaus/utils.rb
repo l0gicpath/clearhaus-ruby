@@ -10,4 +10,28 @@ module Clearhaus # :nodoc:
       ] : hash
   end
 
+  module PayloadExtractor
+
+    module ClassMethods
+      def from_hash(hash: {}, wrapwith: "")
+        hash.map { |k, v| 
+            v.is_a?(Hash) ? from_hash_wrapped(hash: v, wrapwith: k) : 
+              wrapwith.empty? ? {"#{k}" => v} : {"#{wrapwith}[#{k}]" => v}
+          }.flatten.reduce({}, :merge)
+      end
+
+      def payload_from_hash(payload: {}, hash: {})
+        payload.merge!( from_hash(hash: hash) )
+      end
+    end
+
+
+
+    class << self
+      def included(base)
+        base.extend(ClassMethods)
+      end
+    end
+  end
+
 end

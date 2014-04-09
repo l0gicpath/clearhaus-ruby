@@ -6,13 +6,13 @@ module Clearhaus #:nodoc:
 
     class Response
 
-      attr_reader :body
+      attr_reader :params
       attr_reader :status
 
       
       def initialize(response)
         parsed_body = response.body.is_a?(String) ? JSON.parse(response.body) : response.body
-        @body = Clearhaus.symbolize( parsed_body )
+        @params = Clearhaus.symbolize( parsed_body )
         analyize
 
         define_states :approved?, :challenged?, :declined? do |state|
@@ -21,14 +21,12 @@ module Clearhaus #:nodoc:
       end
 
       def [](key)
-        @body[key]
+        @params[key]
       end
-
-
 
       private
       def analyize
-        case @body[:status][:code]
+        case @params[:status][:code]
         when 20000
           @status = Status.new(:approved)
         when 20200
@@ -37,7 +35,7 @@ module Clearhaus #:nodoc:
           @status = Status.new(:declined)
         end
 
-        @status.code, @status.message = @body[:status][:code], @body[:status][:message] || ""
+        @status.code, @status.message = @params[:status][:code], @params[:status][:message] || ""
       end
 
       def define_states(*states, &block)
@@ -47,6 +45,7 @@ module Clearhaus #:nodoc:
           end
         end
       end
+      
     end
 
   end

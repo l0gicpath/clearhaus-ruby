@@ -5,27 +5,15 @@ module Clearhaus # :nodoc: all
     class Client
       attr_accessor :options
 
-      def initialize(api_key, options)
-        @options = {
-          :endpoint => "https://gateway.clearhaus.com",
-          :user_agent => "clearhaus/ruby-#{ Clearhaus::VERSION } http://clearhaus.com",
-          :silent => true
-        }
-
-        @options.update options
+      def initialize
 
         @headers = {
-          "user-agent" => @options[:user_agent]
+          "user-agent" => "clearhaus/ruby-#{ Clearhaus::VERSION } http://clearhaus.com"
         }
 
-        if @options.has_key? :headers
-          @headers.update Hash[@options[:headers].map { |k, v| [k.downcase, v] }]
-          @options.delete :headers
-        end
-
-        @client = Faraday.new @options[:endpoint] do |conn|
-          conn.use Clearhaus::HttpClient::AuthHandler, api_key
-          conn.use Clearhaus::HttpClient::ErrorHandler unless @options[:silent]
+        @client = Faraday.new(Clearhaus.endpoint) do |conn|
+          conn.use Clearhaus::HttpClient::AuthHandler
+          conn.use Clearhaus::HttpClient::ErrorHandler
 
           conn.adapter Faraday.default_adapter
         end
@@ -40,8 +28,8 @@ module Clearhaus # :nodoc: all
       end
 
       # Handles both get and post requests, if it's a post request we change the request body accordingly
-      def request(path, body, method, options)
-        options = @options.merge options
+      def request(path, body, method, opts)
+        options = opts
         options[:headers] ||= {}
         options[:headers] = @headers.merge Hash[options[:headers].map{ |k, v| [k.downcase, v] }]
         options[:body] = body

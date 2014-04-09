@@ -12,6 +12,7 @@ module Clearhaus # :nodoc: all
       # Raises a ClientError with the code and message received from Clearhaus
       def call(env)
         @app.call(env).on_complete do
+          next if Clearhaus.silent
           status = JSON.parse(env[:body])['status']
           case status['code']
           when 40000..50100

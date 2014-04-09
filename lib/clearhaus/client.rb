@@ -4,115 +4,128 @@ module Clearhaus # :nodoc:
   # Provides direct mapping to clearhaus API. To start using it, it must be initialized with a clearhaus API
   # key and an optional list of params (See: Clearhaus::Client#initialize for more details)
   class Client
+    extend SingleForwardable
+    include PayloadExtractor
 
-    ##
-    # Create a new instance of the client with a clearhaus API key
-    # params:
-    # +api_key+:: clearhaus api key, raises an ArgumentError if no key was provided 
-    # +options+:: an *optional* hash for setting the :endpoint of the api or the :user_agent of all client requests
-    def initialize(api_key = "", options = {})
-      raise ArgumentError, "Missing an API key" if api_key.empty?
+    def_delegator :Clearhaus, :httpc
 
-      @httpc = Clearhaus::HttpClient::Client.new api_key, options
-    end
+    class << self
 
-    ##
-    # Given credit card details, it generates a token for this credit card
-    # Returns the same JSON response returned by the API
-    # Example:
-    #   tokenize(
-    #       :number => 4111111111111111,
-    #       :expire_month => 12,
-    #       :expire_year  => 2017,
-    #       :csc => 123
-    #     )
-    def tokenize(card)
-      payload = {
-        "card[number]" => card[:number],
-        "card[expire_month]" => card[:expire_month],
-        "card[expire_year]" => card[:expire_year],
-        "card[csc]" => card[:csc]
-      }
-      @httpc.post("/cards", payload)
-    end
+      ##
+      # Tokenize will take a card hash with the card details and tokenizes this returning
+      # a Response object decorated with CardOperations
+      # Card hash is expected to be in the following format:
+      #   {
+      #     :number => 4111111111111111,
+      #     :expire_year => 2017,
+      #     :expire_month => 12,
+      #     :csc => 123
+      #   }
+      # Order of keys is irrelevant
+      #
+      # params:
+      # +card+:: card hash containing credit card details as outlined in the example above
+      def tokenize(card)
+        payload = from_hash(hash: card, wrapwith: "card")
 
-    ##
-    # Preforms an authorize and then a capture on the given credit card information, or credit card token and
-    # expects the same params given to the API
-    # See: Clearhaus::Client#authorize
-    def charge(data)
-      response = authorize(data)
-      capture(:transaction_id => response[:id])
-    end
-
-    ##
-    # Authorizes a new transaction, directly mapping the API and expects the same params. Also returns the same
-    # JSON returned by the API
-    # Example:
-    #   card = {
-    #     :number => 4111111111111111,
-    #     :expire_month => 12,
-    #     :expire_year  => 2017,
-    #     :csc => 123
-    #   }
-    #   authorize(
-    #      :amount => 1000, 
-    #      :card => card,
-    #      :currency => "EUR",
-    #      :ip => "1.1.1.1",
-    #    )
-    def authorize(data)
-      payload = {
-        "amount" => data.delete(:amount)
-      }
-
-      if data[:card_token]
-        payload.merge!("card_token" => data.delete(:card_token))
-      else
-        payload.merge!({
-            "card[number]" => data[:card][:number],
-            "card[expire_month]" => data[:card][:expire_month],
-            "card[expire_year]" => data[:card][:expire_year],
-            "card[csc]" => data[:card][:csc]
-          })
-        data.delete(:card)
+        response = httpc.post("/cards", payload)
+        response.extend(Clearhaus::Api::CardOperations)
       end
 
-      payload.merge!(Hash[data.map { |k, v| [k.downcase.to_s, v] }])
-      @httpc.post("/authorizations", payload)
-    end
+      ##
+      # Authorize will generate an authorization transaction, validating whether a +card+ has enough funds for
+      # a purchase or not, if so it'll reserve +amount+ until it's captured
+      # Returns a Response object decorated with TransactionOperations
+      #
+      # params:
+      # +data+:: the required params to generate an authorization transaction. Expected values are as follows:
+      #   :card => A card token or a card hash containing credit card details
+      #   :amount => The amount to request an authorization for
+      #   :ip => The IP address of the card holder
+      #   :currency => The currency +amount+ is in
+      #   :recurring => (Optional) Set to true if this is a recurring transaction
+      #   :text_on_statement => (Optional) Text that'll be placed on the card holder's statement
+      def authorize(data)
+        payload = {}
+        payload["card_token"] = data.delete(:card) if data[:card].is_a? String
+        payload_from_hash(payload: payload, hash: data)
 
-    ##
-    # Captures an already authorized transaction, directly mapping the API and expects the same params. Also returns
-    # the same JSON returned by the API
-    # Example:
-    #   capture( :transaction_id => "ID Of Authorized Transaction" )
-    def capture(data)
-      payload = { "amount" => data[:amount] } if data[:amount]
+        response = httpc.post("/authorizations", payload)
+        response.extend(Clearhaus::Api::TransactionOperations)
+      end
 
-      @httpc.post("/authorizations/#{ data[:transaction_id] }/captures", payload || {})
-    end
+      ##
+      # Capture is intended to be used after a transaction has been authorized in order to transfer the funds
+      # to the merchant. Capture can also be used to partially capture an amount of a transaction.
+      # Returns a Response object decorated with TransactionOperations
+      #
+      # params:
+      # +transaction_id+:: ID of a transaction that has been authorized
+      # +amount+:: (Optional) If given, this will allow the capture of only a part of the whole transaction amount
+      def capture(transaction_id, amount: nil)
+        payload = { "amount" => amount } if amount
 
-    ##
-    # Voids an authorized transaction, directly mapping the API and expects the same params. Also returns the same JSON
-    # returned by the API
-    # Example:
-    #   void( :transaction_id => "ID Of Authorized Transaction" )
-    def void(data)
-      @httpc.post("/authorizations/#{ data[:transaction_id] }/voids")
-    end
+        response = httpc.post("/authorizations/#{ transaction_id }/captures", payload || {})
+        response.extend(Clearhaus::Api::TransactionOperations)
+      end
 
-    ##
-    # Refunds a captured/charged transaction, directly mapping the API and expects the same params. Also returns the same JSON
-    # returned by the API
-    # Example:
-    #   refund( :transaction_id => "ID Of Authorized Transaction" )
-    def refund(data)
-      payload = { "amount" => data[:amount] } if data[:amount]
+      ##
+      # Void a transaction that was previously authorized but hasn't been captured yet. It returns a Response
+      # object decorated with TransactionOperations
+      # 
+      # params:
+      # +transaction_id+:: ID of a transaction that has been authorized
+      def void(transaction_id)
+        response = post("/authorizations/#{ transaction_id }/voids")
+        response.extend(Clearhaus::Api::TransactionOperations)
+      end
 
-      @httpc.post("/captures/#{ data[:transaction_id] }/refunds", payload || {})
+      ##
+      # Refund a transaction that has been already captured. Can also be used for partial refunds if an amount
+      # was passed to it.
+      # Returns a Response decorated with TransactionOperations
+      #
+      # params:
+      # +transaction_id+:: ID of a transaction that has already been captured
+      # +amount+:: (Optional) If given, this will allow partial refund
+      def refund(transaction_id, amount: nil)
+        payload = { "amount" => amount } if amount
+
+        response = httpc.post("/captures/#{ transaction_id }/refunds", payload || {})
+        response.extend(Clearhaus::Api::TransactionOperations)
+      end
+
+      ##
+      # Payout to a card holder
+      #
+      # params:
+      # +data+:: the required params to generate an authorization transaction. Expected values are as follows:
+      #   :card_token => A card token referring to the card that will be credited. See #tokenize
+      #   :amount => The amount to payout
+      #   :currency => The currency +amount+ is in
+      #   :text_on_statement => (Optional) Text that'll be placed on the card holder's statement
+      def credit(data)
+        payload = from_hash(hash: data)
+        httpc.post("/credits", payload)
+      end
+
+      ##
+      # Charge will do an #authorize and #capture in one step, if the authorization returns a challenged or declined
+      # response, it will get returned right away and wont perform a capture.
+      # If authorization was a success, it will perform a capture.
+      #
+      # Always returns a Response object decorated with TransactionOperations
+      #
+      # params:
+      # +data+:: Expects to receive the same params as #authorize
+      def charge(data)
+        response = authorize(data)
+        return response.extend(Clearhaus::Api::TransactionOperations) unless response.approved?
+
+        response = capture(response[:id])
+        response.extend(Clearhaus::Api::TransactionOperations)
+      end
     end
 
   end
-
 end
