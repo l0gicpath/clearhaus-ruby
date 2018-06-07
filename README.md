@@ -1,4 +1,7 @@
 # Clearhaus-Ruby
+
+[![Maintainability](https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability)](https://codeclimate.com/github/l0gicpath/clearhaus-ruby)
+
 Ruby client library for Clearhaus transaction API.
 
 Clearhaus transaction API allows the processing of payments on credit cards, either moving money from a credit card to a merchant account at Clearhaus or the other way around.
